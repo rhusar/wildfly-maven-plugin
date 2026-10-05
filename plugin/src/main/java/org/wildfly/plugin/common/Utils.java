@@ -16,10 +16,15 @@ import java.util.regex.Pattern;
 
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
+import org.eclipse.aether.DefaultRepositorySystemSession;
+import org.eclipse.aether.RepositorySystem;
+import org.eclipse.aether.RepositorySystemSession;
+import org.eclipse.aether.repository.RemoteRepository;
 import org.jboss.galleon.api.GalleonBuilder;
 import org.jboss.galleon.api.GalleonFeaturePack;
 import org.jboss.galleon.api.Provisioning;
 import org.jboss.galleon.api.config.GalleonProvisioningConfig;
+import org.jboss.galleon.maven.plugin.util.MavenArtifactRepositoryManager;
 import org.jboss.galleon.universe.maven.repo.MavenRepoManager;
 import org.wildfly.glow.Arguments;
 import org.wildfly.glow.GlowSession;
@@ -101,6 +106,25 @@ public class Utils {
             }
         }
         return args;
+    }
+
+    /**
+     * Creates a repository manager that only resolves artifacts from the local Maven repository. The remote
+     * repositories are still passed to the resolver as artifacts in the local repository are tracked with the id of
+     * the remote repository they were downloaded from and are only considered available if a repository with the
+     * same id is part of the request. The offline session prevents any network access.
+     *
+     * @param repoSystem   the repository system
+     * @param repoSession  the repository session
+     * @param repositories the remote repositories the artifacts in the local repository may originate from
+     *
+     * @return an offline repository manager
+     */
+    public static MavenArtifactRepositoryManager offlineRepositoryManager(final RepositorySystem repoSystem,
+            final RepositorySystemSession repoSession, final List<RemoteRepository> repositories) {
+        final DefaultRepositorySystemSession offlineSession = new DefaultRepositorySystemSession(repoSession);
+        offlineSession.setOffline(true);
+        return new MavenArtifactRepositoryManager(repoSystem, offlineSession, repositories);
     }
 
     public static ScanResults scanDeployment(GlowConfig discoverProvisioningInfo,

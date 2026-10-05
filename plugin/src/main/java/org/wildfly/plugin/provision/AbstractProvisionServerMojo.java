@@ -252,7 +252,7 @@ abstract class AbstractProvisionServerMojo extends AbstractMojo {
         }
         enrichRepositories();
         if (channels == null || channels.isEmpty()) {
-            artifactResolver = offlineProvisioning ? new MavenArtifactRepositoryManager(repoSystem, repoSession)
+            artifactResolver = offlineProvisioning ? Utils.offlineRepositoryManager(repoSystem, repoSession, repositories)
                     : new MavenArtifactRepositoryManager(repoSystem, repoSession, repositories);
         } else {
             try {
